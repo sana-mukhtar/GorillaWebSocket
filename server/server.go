@@ -10,6 +10,7 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
 func handlerFunc(w http.ResponseWriter, req *http.Request) {
@@ -25,6 +26,8 @@ func handlerFunc(w http.ResponseWriter, req *http.Request) {
 			break
 		}
 
+		defer conn.Close()
+
 		if err := conn.WriteMessage(msgType, msg); err != nil {
 			log.Println("err writeMessage: ", err)
 			break
@@ -35,5 +38,7 @@ func handlerFunc(w http.ResponseWriter, req *http.Request) {
 func main() {
 	http.HandleFunc("/ws", handlerFunc)
 	addr := ":8080"
-	http.ListenAndServe(addr, nil)
+	log.Println("starting http server: ")
+	err := http.ListenAndServe(addr, nil)
+	log.Println("server exited ", err)
 }
